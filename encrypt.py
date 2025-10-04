@@ -3,6 +3,23 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
 
+def create_pdf(title, text):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)  # no unpacking needed
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, 742, title)  # letter height is 792, leave margin
+    c.setFont("Helvetica", 12)
+
+    y = 700
+    for line in text.split('\n'):
+        c.drawString(50, y, line)
+        y -= 20
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # --- Keypad mapping logic ---
 keys = {
     2: "ABC",
@@ -18,8 +35,8 @@ keys = {
 # Build encryption map
 encrypt_map = {}
 for digit, letters in keys.items():
-    for idx, letter in enumerate(letters, start=1):
-        encrypt_map[letter] = f"{digit}{idx}"
+    for idx, letter_char in enumerate(letters, start=1):
+        encrypt_map[letter_char] = f"{digit}{idx}"
 encrypt_map[' '] = '00'
 
 # Build decryption map
@@ -36,9 +53,10 @@ def decrypt(code):
 # --- PDF generation ---
 def create_pdf(title, text):
     buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    page_size = letter  # Use letter as a tuple
+    width, height = tuple(page_size)  # Safe unpacking
 
+    c = canvas.Canvas(buffer, pagesize=page_size)
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, height - 50, title)
     c.setFont("Helvetica", 12)
